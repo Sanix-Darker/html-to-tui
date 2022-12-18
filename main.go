@@ -30,12 +30,12 @@ func main() {
 		return
 	}
 
+	t := tview.NewTable().SetBorders(true)
+
 	for i, rowData := range tableData {
-		t := tview.NewTable().SetBorders(true)
 		for j, cellData := range rowData {
 			if j%2 == 0 {
-				t.SetCell(i, j/2, tview.NewTableCell(cellData).
-					SetTextColor(rowData[j+1]).
+				t.SetCell(i, j/2, tview.NewTableCell(cellData.Text).
 					SetAlign(tview.AlignCenter))
 			}
 		}
@@ -43,19 +43,17 @@ func main() {
 	}
 }
 
-func extractTableData(doc *html.Node) ([][]string, error) {
-	var tableData [][]string
+func extractTableData(doc *html.Node) ([][]*tview.TableCell, error) {
+	var tableData [][]*tview.TableCell
 	tableElements := extractTableElements(doc)
 	for _, table := range tableElements {
 		rows := extractTableRows(table)
 		for _, row := range rows {
 			cells := extractTableCells(row)
-			var rowData []string
+			var rowData []*tview.TableCell
 			for _, cell := range cells {
 				text := extractText(cell)
-				color := extractColor(cell)
-				rowData = append(rowData, text)
-				rowData = append(rowData, color)
+				rowData = append(rowData, tview.NewTableCell(text))
 			}
 			tableData = append(tableData, rowData)
 		}
@@ -125,17 +123,4 @@ func extractText(n *html.Node) string {
 	}
 	f(n)
 	return text
-}
-
-func extractColor(n *html.Node) string {
-	for _, a := range n.Attr {
-		if a.Key == "style" {
-			for _, s := range strings.Split(a.Val, ";") {
-				if strings.HasPrefix(s, "color:") {
-					return strings.TrimSpace(strings.TrimPrefix(s, "color:"))
-				}
-			}
-		}
-	}
-	return ""
 }
