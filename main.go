@@ -24,27 +24,40 @@ func main() {
 
 	app := tview.NewApplication()
 
-	tableElements := extractTableElements(doc)
+	tableData, err := extractTableData(doc)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	for _, table := range tableElements {
+	for i, rowData := range tableData {
 		t := tview.NewTable().SetBorders(true)
-
-		rows := extractTableRows(table)
-
-		for i, row := range rows {
-			cells := extractTableCells(row)
-
-			for j, cell := range cells {
-				text := extractText(cell)
-				color := extractColor(cell)
-				t.SetCell(i, j, tview.NewTableCell(text).
-					SetTextColor(color).
-					SetAlign(tview.AlignCenter))
-			}
+		for j, cellData := range rowData {
+			color := extractColor(extractText(cellData))
+			t.SetCell(i, j, tview.NewTableCell(cellData).
+				SetTextColor(color).
+				SetAlign(tview.AlignCenter))
 		}
-
 		app.SetRoot(t, true).Run()
 	}
+}
+
+func extractTableData(doc *html.Node) ([][]string, error) {
+	var tableData [][]string
+	tableElements := extractTableElements(doc)
+	for _, table := range tableElements {
+		rows := extractTableRows(table)
+		for _, row := range rows {
+			cells := extractTableCells(row)
+			var rowData []string
+			for _, cell := range cells {
+				text := extractText(cell)
+				rowData = append(rowData, text)
+			}
+			tableData = append(tableData, rowData)
+		}
+	}
+	return tableData, nil
 }
 
 func extractTableCells(row *html.Node) []*html.Node {
