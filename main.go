@@ -56,11 +56,12 @@ func extractTableData(doc *html.Node) ([][]*tview.TableCell, error) {
 				}
 				bgColor, err := extractBackgroundColor(cell)
 				if err != nil {
-					return nil, err
+					bgColor = tcell.ColorDefault
 				}
 				rowData = append(rowData, tview.NewTableCell(text).
 					SetTextColor(color).
-					SetBackgroundColor(bgColor))
+					SetBackgroundColor(bgColor).
+					SetStyle(tcell.StyleDefault))
 			}
 			tableData = append(tableData, rowData)
 		}
@@ -143,7 +144,7 @@ func extractColor(n *html.Node) (tcell.Color, error) {
 			}
 		}
 	}
-	return tcell.ColorWhite, fmt.Errorf("color not found")
+	return tcell.ColorWhite, nil
 }
 
 func extractBackgroundColor(n *html.Node) (tcell.Color, error) {
