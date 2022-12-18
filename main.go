@@ -33,10 +33,11 @@ func main() {
 	for i, rowData := range tableData {
 		t := tview.NewTable().SetBorders(true)
 		for j, cellData := range rowData {
-			color := extractColor(extractText(cellData))
-			t.SetCell(i, j, tview.NewTableCell(cellData).
-				SetTextColor(color).
-				SetAlign(tview.AlignCenter))
+			if j%2 == 0 {
+				t.SetCell(i, j/2, tview.NewTableCell(cellData).
+					SetTextColor(rowData[j+1]).
+					SetAlign(tview.AlignCenter))
+			}
 		}
 		app.SetRoot(t, true).Run()
 	}
@@ -52,7 +53,9 @@ func extractTableData(doc *html.Node) ([][]string, error) {
 			var rowData []string
 			for _, cell := range cells {
 				text := extractText(cell)
+				color := extractColor(cell)
 				rowData = append(rowData, text)
+				rowData = append(rowData, color)
 			}
 			tableData = append(tableData, rowData)
 		}
