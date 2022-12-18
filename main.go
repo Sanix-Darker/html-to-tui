@@ -157,5 +157,5 @@ func extractBackgroundColor(n *html.Node) (tcell.Color, error) {
 			}
 		}
 	}
-	return tcell.ColorWhite, fmt.Errorf("background color not found")
+	return tcell.ColorWhite, nil
 }
