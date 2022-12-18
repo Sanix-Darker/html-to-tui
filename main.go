@@ -31,13 +31,13 @@ func main() {
 		return
 	}
 
+	t := tview.NewTable().SetBorders(true)
 	for i, rowData := range tableData {
-		t := tview.NewTable().SetBorders(true)
 		for j, cell := range rowData {
 			t.SetCell(i, j, cell)
 		}
-		app.SetRoot(t, true).Run()
 	}
+	app.SetRoot(t, true).Run()
 }
 
 func extractTableData(doc *html.Node) ([][]*tview.TableCell, error) {
