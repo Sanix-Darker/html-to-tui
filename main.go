@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"golang.org/x/net/html"
 )
@@ -30,14 +31,10 @@ func main() {
 		return
 	}
 
-	t := tview.NewTable().SetBorders(true)
-
 	for i, rowData := range tableData {
-		for j, cellData := range rowData {
-			if j%2 == 0 {
-				t.SetCell(i, j/2, tview.NewTableCell(cellData.Text).
-					SetAlign(tview.AlignCenter))
-			}
+		t := tview.NewTable().SetBorders(true)
+		for j, cell := range rowData {
+			t.SetCell(i, j, cell)
 		}
 		app.SetRoot(t, true).Run()
 	}
@@ -53,7 +50,17 @@ func extractTableData(doc *html.Node) ([][]*tview.TableCell, error) {
 			var rowData []*tview.TableCell
 			for _, cell := range cells {
 				text := extractText(cell)
-				rowData = append(rowData, tview.NewTableCell(text))
+				color, err := extractColor(cell)
+				if err != nil {
+					return nil, err
+				}
+				bgColor, err := extractBackgroundColor(cell)
+				if err != nil {
+					return nil, err
+				}
+				rowData = append(rowData, tview.NewTableCell(text).
+					SetTextColor(color).
+					SetBackgroundColor(bgColor))
 			}
 			tableData = append(tableData, rowData)
 		}
@@ -123,4 +130,32 @@ func extractText(n *html.Node) string {
 	}
 	f(n)
 	return text
+}
+
+func extractColor(n *html.Node) (tcell.Color, error) {
+	for _, a := range n.Attr {
+		if a.Key == "style" {
+			for _, s := range strings.Split(a.Val, ";") {
+				if strings.HasPrefix(s, "color:") {
+					color := strings.TrimSpace(strings.TrimPrefix(s, "color:"))
+					return tcell.GetColor(color), nil
+				}
+			}
+		}
+	}
+	return tcell.ColorWhite, fmt.Errorf("color not found")
+}
+
+func extractBackgroundColor(n *html.Node) (tcell.Color, error) {
+	for _, a := range n.Attr {
+		if a.Key == "style" {
+			for _, s := range strings.Split(a.Val, ";") {
+				if strings.HasPrefix(s, "background-color:") {
+					color := strings.TrimSpace(strings.TrimPrefix(s, "background-color:"))
+					return tcell.GetColor(color), nil
+				}
+			}
+		}
+	}
+	return tcell.ColorWhite, fmt.Errorf("background color not found")
 }
